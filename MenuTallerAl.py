@@ -1,7 +1,7 @@
 #Comnado para importar las funciones del archivo TallerAlgo1.py
 from TallerAlgo1 import *
 
-#Realizado por Daniel Felipe Carreño
+#Realizado por Daniel Felipe Carreño y Sofia Leyton 
 
 #Menu para el usuario
 def menu():
