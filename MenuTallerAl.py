@@ -1,5 +1,6 @@
 #Comnado para importar las funciones del archivo TallerAlgo1.py
 from TallerAlgo1 import *
+#Parte Numero 3 del taller de Algoritmos 
 
 #Realizado por Daniel Felipe Carreño 
 
