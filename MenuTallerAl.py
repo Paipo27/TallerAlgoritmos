@@ -20,7 +20,8 @@ def menu():
         print("7. Matriz EstadoFuturo")
         print("8. Matriz EstadoCanalIP")
         print("9. Matriz EstadoEstadoP")
-        print("10. Salir")
+        print("10. prueba")
+        print("11. Salir ")
         # Solicitar al usuario la opción
         opcion = input("Seleccione una opción: ")
         
@@ -63,7 +64,6 @@ def menu():
             else:
                 print("No tienes canales ingresados.")
         elif opcion == "10":
-           if print("Gracias por usar el programa"):
-                break
-     #  :3    :/   :v   -_-
+            MatrizGlobal()
+         #  :3    :/   :v   -_-
 menu()

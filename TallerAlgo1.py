@@ -132,7 +132,11 @@ def generarMatriz(*canales):
             probabilidades = [f"{transiciones[estado][j]/conteo_total:<5.2f}" for j in range(1, len(canales) + 1)]
         print(f"{estado} {' '.join(probabilidades)}")
 
+matriz_global = []
+
 def generarEstados(listaarreglos):
+    global matriz_global
+
     # Convertir el diccionario a una lista de canales
     canales = list(listaarreglos.values())
     
@@ -155,6 +159,9 @@ def generarEstados(listaarreglos):
                                all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
                                all([canal[i+1] == int(next_estado[k]) for k, canal in enumerate(canales)])])
             matriz[idx][j] = round(float(occurrences) / count, 2)
+
+    # Asignar la matriz generada a la matriz global
+    matriz_global = matriz
 
     # Mostrar matriz
     encabezado = " " * len(estados[0]) + " "
@@ -202,7 +209,7 @@ def generrEstadoCanalIP(*canales):
             probabilidades = [f"{transiciones[estado][j]/conteo_total:<5.2f}" for j in range(1, len(canales) + 1)]
         print(f"{estado} {' '.join(probabilidades)}")
 
-from itertools import product
+matriz_global = []
 
 def generarEstadosEstados(listaarreglos):
     # Convertir el diccionario a una lista de canales
@@ -266,4 +273,10 @@ def CargarExcel(file_path, listaarreglos):
         listaarreglos[canal_numero] = column
 
     return listaarreglos  # Devolver el diccionario actualizado
+
+def MatrizGlobal():
+    global matriz_global
+    print("Matriz global desde otra función:")
+    for fila in matriz_global:
+        print(fila)
 #  :3    :/   :v   -_-
