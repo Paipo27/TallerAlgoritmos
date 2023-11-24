@@ -132,10 +132,13 @@ def generarMatriz(*canales):
             probabilidades = [f"{transiciones[estado][j]/conteo_total:<5.2f}" for j in range(1, len(canales) + 1)]
         print(f"{estado} {' '.join(probabilidades)}")
 
+from itertools import product
+
 matriz_global = []
 
 def generarEstados(listaarreglos):
     global matriz_global
+
     # Convertir el diccionario a una lista de canales
     canales = list(listaarreglos.values())
 
@@ -158,9 +161,9 @@ def generarEstados(listaarreglos):
                                all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
                                all([canal[i-1] == int(prev_estado[k]) for k, canal in enumerate(canales)])])
             matriz[idx][j] = round(float(occurrences) / count, 2)
-            
 
-    # Mostrar matriz
+    # Mostrar la matriz original
+    print("\nMatriz Original:")
     encabezado = " " * len(estados[0]) + " "
     for estado in estados:
         encabezado += "{:^7}".format(estado)
@@ -184,92 +187,52 @@ def generarEstados(listaarreglos):
 
     print("\nLista de Estados Futuros:")
     print(estados_futuros)
-
-    # Solicitar al usuario el estado actual y el estado futuro un while true para validar que el estado ingresado sea valido
+     
+    
+    # Solicitar al usuario el índice del dígito a eliminar en el estado futuro
     while True:
-        estado_actual = input("Ingrese el estado actual que desea seleccionar dependiendo de la cantidad de canales existentes (por ejemplo, 01, 101): ")
-        if all(bit in '01' for bit in estado_actual) and estado_actual in estados:
-            break
-        else:
-            print("Estado inválido. Asegúrese de ingresar un estado válido que contenga solo 0s y 1s y que exista en la lista de estados.")
+        try:
+            indice_eliminar = int(input(f"\nSeleccione el número del índice del estado que desea marginalzar en todos los estados futuros (1, 2, 3,): "))
+            if 1 <= indice_eliminar <= len(estados_futuros[0]):
+                break
+            else:
+                print("Número fuera de rango. Intente nuevamente.")
+        except ValueError:
+            print("Ingrese un número válido.")
 
-    while True:
-        estado_futuro = input("Ingrese el estado futuro que desea seleccionar dependiendo de la cantidad de canales existentes (por ejemplo, 01, 101): ")
-        if all(bit in '01' for bit in estado_futuro) and estado_futuro in estados:
-            break
-        else:
-            print("Estado inválido. Asegúrese de ingresar un estado válido que contenga solo 0s y 1s y que exista en la lista de estados.")
+    # Eliminar el dígito correspondiente en todos los estados futuros
+    estados_futuros = [estado[:indice_eliminar-1] + estado[indice_eliminar:] for estado in estados_futuros]
 
-    print(f"\nHa seleccionado el estado actual: {estado_actual}")
-    print(f"El estado futuro es: {estado_futuro}")
+    # Fusionar filas iguales en estados futuros y actualizar la matriz
+    estados_futuros_fusionados = list(set(estados_futuros))
+    matriz_fusionada = [[0.0 for _ in range(len(estados_futuros_fusionados) - 1)] for _ in range(len(estados))]
 
-     # Obtener la matriz de probabilidades para el estado actual y futuro seleccionados
-    if estado_actual == estado_futuro:
-        # Imprimir los números de las columnas para el estado seleccionado
-        indices_columnas = [i for i, estado in enumerate(estados_actuales) if estado == estado_actual]
-        #asignar los datos a una matriz global para ser impresas en otra funcion
-        matriz_global=[matriz[i]for i in indices_columnas]
-    else:  
-        estado_futuro_modificado = estado_futuro[1:]
+    for i, estado_row in enumerate(estados):
+        for j, estado_col in enumerate(estados_futuros_fusionados[1:]):
+            indices_originales = [idx for idx, estado in enumerate(estados_futuros) if estado == estado_col]
+            suma_valores = sum(matriz[i][idx] for idx in indices_originales)
+            matriz_fusionada[i][j] = suma_valores
 
-        # Actualizar la lista de estados futuros después de la modificación
-        estados_futuros_modificados = [estado[1:] for estado in estados_futuros]
+    # Mostrar la matriz fusionada después de eliminar un dígito en todos los estados futuros
+    print("\nMatriz Fusionada (después de Marginalizar un estado en todos los estados futuros):")
+    encabezado = " " * len(estados[0]) + " "
+    for estado in estados_futuros_fusionados[1:]:
+        encabezado += "{:^7}".format(estado)
+    print(encabezado)
+    for i, estado_row in enumerate(estados):
+        fila = estado_row + " "
+        for j, estado_col in enumerate(estados_futuros_fusionados[1:]):
+            valor = matriz_fusionada[i][j]
+            fila += "{:^7.2f}".format(valor)
+        print(fila)
+    if indice_eliminar == 1:
+        print("\nMarginalizando A en todos los estados futuros.")
+    elif indice_eliminar == 2:
+        print("\nMarginalizando B en todos los estados futuros.")
+    elif indice_eliminar == 3:
+        print("\nMarginalizando C en todos los estados futuros.")
 
-        # Verificar si el estado futuro modificado está en la lista actualizada
-        if estado_futuro_modificado not in estados_futuros_modificados:
-            print(f"\nError: El estado futuro modificado '{estado_futuro_modificado}' no está en la lista de estados futuros.")
-            return
 
-        # Obtener el índice correspondiente al estado futuro modificado
-        indice_columna_futuro = estados_futuros_modificados.index(estado_futuro_modificado)
-
-        # Sumar las filas con estados futuros iguales y obtener la columna resultante del estado futuro
-        matriz_resultante_futuro = [sum(fila[idx] for fila in matriz if fila[1:] == fila_futuro) for idx, fila_futuro in enumerate(matriz)]
-
-        # Almacenar la columna resultante del estado futuro
-        matriz_global_columna_actual = matriz_resultante_futuro
-
-        # Mostrar la columna resultante del estado actual después de las sumas
-        print("\nColumna Resultante del Estado Actual Después de las Sumas:")
-        for valor in matriz_global_columna_actual:
-            print(f"{valor:.2f}", end=" ")  # Mostrar en horizontal           
-
-def generrEstadoCanalIP(*canales):
-    # Definir todos los posibles estados que pueden tener los canales.
-    estados = [''.join(map(str, comb)) for comb in product([0, 1], repeat=len(canales))]
-    
-    # Inicializar el diccionario de transiciones.
-    transiciones = {estado: [0] + [0]*len(canales) for estado in estados}
-    
-    # Recorrer los canales para llenar las transiciones.
-    for i in range(1, len(canales[0])):
-        estado_actual = ''.join(map(str, [canal[i] for canal in canales]))
-        
-        # Líneas de diagnóstico
-        if estado_actual not in transiciones:
-            print(f"Error: '{estado_actual}' no está en las claves de 'transiciones'.")
-            print(f"Canales: {canales}")
-            return
-        # Fin de líneas de diagnóstico
-        transiciones[estado_actual][0] += 1
-        for j, canal in enumerate(canales, start=1):
-            transiciones[estado_actual][j] += canal[i-1]
-    
-    # Mostrar la matriz de transiciones.
-    headers = ' '.join([f"{i:<5}" for i in range(1, len(canales) + 1)])
-    print(f"{' '*5}{headers}")
-    #For para recorrer los estados y mostrar las probabilidades
-    for estado in estados:
-        conteo_total = transiciones[estado][0]
-        #If para validar si el conteo total es 0
-        if conteo_total == 0:
-            probabilidades = ['{:<5}'.format('0.0') for _ in canales]
-        else:
-            probabilidades = [f"{transiciones[estado][j]/conteo_total:<5.2f}" for j in range(1, len(canales) + 1)]
-        print(f"{estado} {' '.join(probabilidades)}")
-
-#matriz global para guardar la matriz de estados
-matriz_global = []
 
 def generarEstadosEstados(listaarreglos):
     # Convertir el diccionario a una lista de canales
