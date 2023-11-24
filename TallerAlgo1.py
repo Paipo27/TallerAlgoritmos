@@ -135,6 +135,7 @@ def generarMatriz(*canales):
 matriz_global = []
 
 def generarEstados(listaarreglos):
+    global matriz_global
     # Convertir el diccionario a una lista de canales
     canales = list(listaarreglos.values())
 
@@ -157,6 +158,7 @@ def generarEstados(listaarreglos):
                                all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
                                all([canal[i-1] == int(prev_estado[k]) for k, canal in enumerate(canales)])])
             matriz[idx][j] = round(float(occurrences) / count, 2)
+            
 
     # Mostrar matriz
     encabezado = " " * len(estados[0]) + " "
@@ -183,9 +185,10 @@ def generarEstados(listaarreglos):
     print("\nLista de Estados Futuros:")
     print(estados_futuros)
 
+    # Solicitar al usuario el estado actual y el estado futuro un while true para validar que el estado ingresado sea valido
     while True:
-        estado_seleccionado = input("Ingrese el estado actual que desea seleccionar dependiendo de la cantidad de canales existentes (por ejemplo, 01, 101): ")
-        if all(bit in '01' for bit in estado_seleccionado) and estado_seleccionado in estados:
+        estado_actual = input("Ingrese el estado actual que desea seleccionar dependiendo de la cantidad de canales existentes (por ejemplo, 01, 101): ")
+        if all(bit in '01' for bit in estado_actual) and estado_actual in estados:
             break
         else:
             print("Estado inválido. Asegúrese de ingresar un estado válido que contenga solo 0s y 1s y que exista en la lista de estados.")
@@ -197,8 +200,15 @@ def generarEstados(listaarreglos):
         else:
             print("Estado inválido. Asegúrese de ingresar un estado válido que contenga solo 0s y 1s y que exista en la lista de estados.")
 
-    print(f"\nHa seleccionado el estado actual: {estado_seleccionado}")
+    print(f"\nHa seleccionado el estado actual: {estado_actual}")
     print(f"El estado futuro es: {estado_futuro}")
+
+     # Obtener la matriz de probabilidades para el estado actual y futuro seleccionados
+    if estado_actual == estado_futuro:
+        # Imprimir los números de las columnas para el estado seleccionado
+        indices_columnas = [i for i, estado in enumerate(estados_actuales) if estado == estado_actual]
+        #asignar los datos a una matriz global para ser impresas en otra funcion
+        matriz_global=[matriz[i]for i in indices_columnas]
 
 
 def generrEstadoCanalIP(*canales):
@@ -235,6 +245,7 @@ def generrEstadoCanalIP(*canales):
             probabilidades = [f"{transiciones[estado][j]/conteo_total:<5.2f}" for j in range(1, len(canales) + 1)]
         print(f"{estado} {' '.join(probabilidades)}")
 
+#matriz global para guardar la matriz de estados
 matriz_global = []
 
 def generarEstadosEstados(listaarreglos):
@@ -249,12 +260,14 @@ def generarEstadosEstados(listaarreglos):
     # Generar matriz
     estados = [''.join(map(str, comb)) for comb in product([0, 1], repeat=len(canales))]
     matriz = [[0.0 for _ in range(len(estados))] for _ in range(len(estados))]
-    
+    #For para recorrer los estados y mostrar las probabilidades
     for idx, estado in enumerate(estados):
         count = sum([1 for i in range(1, len(canales[0])) if  # Iniciamos desde 1, porque miramos atrás
                      all([canal[i] == int(bit) for canal, bit in zip(canales, estado)])])
+        #If para validar si el conteo total es 0
         if count == 0:
             continue
+        #For para recorrer los estados y mostrar las probabilidades
         for j, prev_estado in enumerate(estados):  # Ahora estamos buscando el estado anterior, así que lo llamamos prev_estado
             occurrences = sum([1 for i in range(1, len(canales[0])) if  # Iniciamos desde 1, porque miramos atrás
                                all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
@@ -302,7 +315,7 @@ def CargarExcel(file_path, listaarreglos):
 
 def MatrizGlobal():
     global matriz_global
-    print("Matriz global desde otra función:")
+    print("Matriz de las probabilidades de los estados en canales:")
     for fila in matriz_global:
         print(fila)
-#  :3    :/   :v   -_-
+#  I am not your enemy, I am the ENEMY 
