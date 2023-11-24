@@ -135,11 +135,9 @@ def generarMatriz(*canales):
 matriz_global = []
 
 def generarEstados(listaarreglos):
-    global matriz_global
-
     # Convertir el diccionario a una lista de canales
     canales = list(listaarreglos.values())
-    
+
     # Asegurarse de que al menos hay canales ingresados
     if not canales:
         print("No se han ingresado canales. Por favor, añada algunos canales primero.")
@@ -148,20 +146,17 @@ def generarEstados(listaarreglos):
     # Generar matriz
     estados = [''.join(map(str, comb)) for comb in product([0, 1], repeat=len(canales))]
     matriz = [[0.0 for _ in range(len(estados))] for _ in range(len(estados))]
-    
+
     for idx, estado in enumerate(estados):
-        count = sum([1 for i in range(len(canales[0]) - 1) if 
+        count = sum([1 for i in range(1, len(canales[0])) if 
                      all([canal[i] == int(bit) for canal, bit in zip(canales, estado)])])
         if count == 0:
             continue
-        for j, next_estado in enumerate(estados):
-            occurrences = sum([1 for i in range(len(canales[0]) - 1) if 
+        for j, prev_estado in enumerate(estados):
+            occurrences = sum([1 for i in range(1, len(canales[0])) if 
                                all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
-                               all([canal[i+1] == int(next_estado[k]) for k, canal in enumerate(canales)])])
+                               all([canal[i-1] == int(prev_estado[k]) for k, canal in enumerate(canales)])])
             matriz[idx][j] = round(float(occurrences) / count, 2)
-
-    # Asignar la matriz generada a la matriz global
-    matriz_global = matriz
 
     # Mostrar matriz
     encabezado = " " * len(estados[0]) + " "
@@ -174,6 +169,37 @@ def generarEstados(listaarreglos):
             valor = matriz[i][j]
             fila += "{:^7.2f}".format(valor)
         print(fila)
+
+    # Obtener lista de estados actuales (filas)
+    estados_actuales = estados.copy()
+
+    # Obtener lista de estados futuros (columnas)
+    estados_futuros = estados.copy()
+
+    # Mostrar las listas
+    print("\nLista de Estados Actuales:")
+    print(estados_actuales)
+
+    print("\nLista de Estados Futuros:")
+    print(estados_futuros)
+
+    while True:
+        estado_seleccionado = input("Ingrese el estado actual que desea seleccionar dependiendo de la cantidad de canales existentes (por ejemplo, 01, 101): ")
+        if all(bit in '01' for bit in estado_seleccionado) and estado_seleccionado in estados:
+            break
+        else:
+            print("Estado inválido. Asegúrese de ingresar un estado válido que contenga solo 0s y 1s y que exista en la lista de estados.")
+
+    while True:
+        estado_futuro = input("Ingrese el estado futuro que desea seleccionar dependiendo de la cantidad de canales existentes (por ejemplo, 01, 101): ")
+        if all(bit in '01' for bit in estado_futuro) and estado_futuro in estados:
+            break
+        else:
+            print("Estado inválido. Asegúrese de ingresar un estado válido que contenga solo 0s y 1s y que exista en la lista de estados.")
+
+    print(f"\nHa seleccionado el estado actual: {estado_seleccionado}")
+    print(f"El estado futuro es: {estado_futuro}")
+
 
 def generrEstadoCanalIP(*canales):
     # Definir todos los posibles estados que pueden tener los canales.
