@@ -209,7 +209,30 @@ def generarEstados(listaarreglos):
         indices_columnas = [i for i, estado in enumerate(estados_actuales) if estado == estado_actual]
         #asignar los datos a una matriz global para ser impresas en otra funcion
         matriz_global=[matriz[i]for i in indices_columnas]
+    else:  
+        estado_futuro_modificado = estado_futuro[1:]
 
+        # Actualizar la lista de estados futuros después de la modificación
+        estados_futuros_modificados = [estado[1:] for estado in estados_futuros]
+
+        # Verificar si el estado futuro modificado está en la lista actualizada
+        if estado_futuro_modificado not in estados_futuros_modificados:
+            print(f"\nError: El estado futuro modificado '{estado_futuro_modificado}' no está en la lista de estados futuros.")
+            return
+
+        # Obtener el índice correspondiente al estado futuro modificado
+        indice_columna_futuro = estados_futuros_modificados.index(estado_futuro_modificado)
+
+        # Sumar las filas con estados futuros iguales y obtener la columna resultante del estado futuro
+        matriz_resultante_futuro = [sum(fila[idx] for fila in matriz if fila[1:] == fila_futuro) for idx, fila_futuro in enumerate(matriz)]
+
+        # Almacenar la columna resultante del estado futuro
+        matriz_global_columna_actual = matriz_resultante_futuro
+
+        # Mostrar la columna resultante del estado actual después de las sumas
+        print("\nColumna Resultante del Estado Actual Después de las Sumas:")
+        for valor in matriz_global_columna_actual:
+            print(f"{valor:.2f}", end=" ")  # Mostrar en horizontal           
 
 def generrEstadoCanalIP(*canales):
     # Definir todos los posibles estados que pueden tener los canales.
