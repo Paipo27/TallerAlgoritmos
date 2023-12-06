@@ -1,5 +1,3 @@
-#collections para crear diccionarios
-from collections import defaultdict
 #intertools para generar las combinaciones de los canales
 from itertools import product
 #pandas para leer el archivo excel
@@ -16,7 +14,7 @@ def ingresarCanales():
     # Solicita al usuario cuántos datos quiere en los Canales (una vez, y se aplica a todos los canales)
     valor = int(input("Ingrese cuántos datos quiere en los Canales: "))
 
-    # Ciclo para pedir los datos de cada Canal
+    # Ciclo para pedir los datos de cada Canal y asignarle un numero
     for i in range(1, numeroCanales + 1):
         # Crea una lista vacía para guardar los datos
         nuevoarreglo = []
@@ -107,7 +105,7 @@ def CargarArchivo():
 
     return listaarreglos
 
-def generarMatriz(*canales):
+def generarMatrizCanalFuturo(*canales):
     # Definir todos los posibles estados que pueden tener los canales.
     estados = [''.join(map(str, comb)) for comb in product([0, 1], repeat=len(canales))]
     
@@ -132,7 +130,6 @@ def generarMatriz(*canales):
             probabilidades = [f"{transiciones[estado][j]/conteo_total:<5.2f}" for j in range(1, len(canales) + 1)]
         print(f"{estado} {' '.join(probabilidades)}")
 
-from itertools import product
 
 matriz_global = []
 
@@ -149,17 +146,26 @@ def generarEstados(listaarreglos):
 
     # Generar matriz
     estados = [''.join(map(str, comb)) for comb in product([0, 1], repeat=len(canales))]
+    #matriz para guardar las probabilidades
     matriz = [[0.0 for _ in range(len(estados))] for _ in range(len(estados))]
-
+    #For para recorrer los estados y mostrar las probabilidades
     for idx, estado in enumerate(estados):
+        #count para contar los estados
         count = sum([1 for i in range(1, len(canales[0])) if 
+                     # Iniciamos desde 1, porque miramos atrás
                      all([canal[i] == int(bit) for canal, bit in zip(canales, estado)])])
+        #If para validar si el conteo total es 0
         if count == 0:
             continue
+        #For para recorrer los estados y mostrar las probabilidades
         for j, prev_estado in enumerate(estados):
+            #con esto se cuentan las ocurrencias
             occurrences = sum([1 for i in range(1, len(canales[0])) if 
+                               # Iniciamos desde 1, porque miramos atrás
                                all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
+                               # enumerate nos da el índice y el valor
                                all([canal[i-1] == int(prev_estado[k]) for k, canal in enumerate(canales)])])
+            #matriz para guardar las probabilidades
             matriz[idx][j] = round(float(occurrences) / count, 2)
 
     # Mostrar la matriz original
@@ -178,59 +184,69 @@ def generarEstados(listaarreglos):
     # Obtener lista de estados actuales (filas)
     estados_actuales = estados.copy()
 
-    # Obtener lista de estados futuros (columnas)
-    estados_futuros = estados.copy()
-
-    # Mostrar las listas
-    print("\nLista de Estados Actuales:")
-    print(estados_actuales)
-
-    print("\nLista de Estados Futuros:")
-    print(estados_futuros)
-     
-    
-    # Solicitar al usuario el índice del dígito a eliminar en el estado futuro
     while True:
-        try:
-            indice_eliminar = int(input(f"\nSeleccione el número del índice del estado que desea marginalzar en todos los estados futuros (1, 2, 3,): "))
-            if 1 <= indice_eliminar <= len(estados_futuros[0]):
+        valor1 = input("\nEscriba los números de los canales futuros separados por comas (ejemplo: 1, 2, 3): ")
+        valor2 = input("\nEscriba los números de los canales actuales separados por comas (ejemplo: 1, 2, 3): ")
+
+        # Validar que los canales sean números y estén en el rango adecuado
+        valor1 = [int(canal) for canal in valor1.split(',') if canal.strip().isdigit()]
+        valor2 = [int(canal) for canal in valor2.split(',') if canal.strip().isdigit()]
+
+        if not valor1 or not valor2:
+            print("Por favor, ingrese números de canal válidos.")
+        elif any(canal < 1 or canal > len(canales[0]) for canal in valor1 + valor2):
+            print("Por favor, ingrese números de canal que estén en la matriz.")
+        else:
+            break
+    print("\nLos canales escogidos fueron el canal futuro", valor1, "/", valor2, "Los canales escogidos fueron el canal actual")
+
+    while True:
+        print("\nEscoja de los estados actuales que se muestran a continuación, el estado actual que desea:")
+
+        # Filtrar y mostrar solo los estados que corresponden a la cantidad de canales seleccionados
+        estados_seleccionados = [''.join(estado[i - 1] for i in valor2) for estado in estados_actuales]
+
+        print(estados_seleccionados)
+
+        Actual = input("\nEscriba el estado actual (ejemplo: 0000, 0001, 0010, ...): ")
+
+        # Validar que los bits en el estado actual sean coherentes con los canales seleccionados
+        for i, bit in enumerate(Actual):
+            canal_actual = canales[valor2[i] - 1]
+            if bit not in "01" or (canal_actual == 1 and bit == "0"):
+                print("El estado actual no es coherente con los canales seleccionados o la longitud no es correcta.")
                 break
-            else:
-                print("Número fuera de rango. Intente nuevamente.")
-        except ValueError:
-            print("Ingrese un número válido.")
+        else:
+            print(f"El estado actual escogido fue: {Actual}")
+            break
+    if set(valor2).issubset(set(valor1)) and set(valor1).issuperset(set(valor2)):
+        # Obtener la fila de la matriz correspondiente al estado actual
+        fila_matriz = matriz[estados.index(Actual)]
 
-    # Eliminar el dígito correspondiente en todos los estados futuros
-    estados_futuros = [estado[:indice_eliminar-1] + estado[indice_eliminar:] for estado in estados_futuros]
+        # Imprimir solo la parte de la fila correspondiente al estado actual
+        print("\nFila de la matriz para el estado actual:")
+        for valor in fila_matriz:
+            print(f"{valor:.2f}", end="   ")
+    else:
+        # Eliminar el primer canal actual
+        canal_actual_eliminar = valor2[0]
+        valor2.remove(canal_actual_eliminar)
 
-    # Fusionar filas iguales en estados futuros y actualizar la matriz
-    estados_futuros_fusionados = list(set(estados_futuros))
-    matriz_fusionada = [[0.0 for _ in range(len(estados_futuros_fusionados) - 1)] for _ in range(len(estados))]
+        # Inicializar la fila modificada con ceros
+        fila_modificada = [0] * len(canales)
 
-    for i, estado_row in enumerate(estados):
-        for j, estado_col in enumerate(estados_futuros_fusionados[1:]):
-            indices_originales = [idx for idx, estado in enumerate(estados_futuros) if estado == estado_col]
-            suma_valores = sum(matriz[i][idx] for idx in indices_originales)
-            matriz_fusionada[i][j] = suma_valores
+        # Iterar sobre los canales restantes y sumar las columnas iguales dividido por 2
+        for canal_actual in valor2:
+            # Sumar los valores de la columna correspondiente al canal actual
+            for i in range(len(canales)):
+                # Cambiar la línea siguiente para trabajar con números
+                fila_modificada[i] += matriz[estados.index(Actual)][canal_actual - 1] / 2
 
-    # Mostrar la matriz fusionada después de eliminar un dígito en todos los estados futuros
-    print("\nMatriz Fusionada (después de Marginalizar un estado en todos los estados futuros):")
-    encabezado = " " * len(estados[0]) + " "
-    for estado in estados_futuros_fusionados[1:]:
-        encabezado += "{:^7}".format(estado)
-    print(encabezado)
-    for i, estado_row in enumerate(estados):
-        fila = estado_row + " "
-        for j, estado_col in enumerate(estados_futuros_fusionados[1:]):
-            valor = matriz_fusionada[i][j]
-            fila += "{:^7.2f}".format(valor)
-        print(fila)
-    if indice_eliminar == 1:
-        print("\nMarginalizando A en todos los estados futuros.")
-    elif indice_eliminar == 2:
-        print("\nMarginalizando B en todos los estados futuros.")
-    elif indice_eliminar == 3:
-        print("\nMarginalizando C en todos los estados futuros.")
+        # Imprimir la fila modificada
+        print("\nFila modificada de la matriz después de sumar y dividir por 2 los valores de los canales actuales:")
+        for valor in fila_modificada:
+            #print para mostrar los valores de la fila modificada
+            print(f"{valor:.2f}", end="   ")
 
 
 
@@ -245,6 +261,7 @@ def generarEstadosEstados(listaarreglos):
 
     # Generar matriz
     estados = [''.join(map(str, comb)) for comb in product([0, 1], repeat=len(canales))]
+    #matriz para guardar las probabilidades
     matriz = [[0.0 for _ in range(len(estados))] for _ in range(len(estados))]
     #For para recorrer los estados y mostrar las probabilidades
     for idx, estado in enumerate(estados):
@@ -256,14 +273,15 @@ def generarEstadosEstados(listaarreglos):
         #For para recorrer los estados y mostrar las probabilidades
         for j, prev_estado in enumerate(estados):  # Ahora estamos buscando el estado anterior, así que lo llamamos prev_estado
             occurrences = sum([1 for i in range(1, len(canales[0])) if  # Iniciamos desde 1, porque miramos atrás
-                               all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and 
+                               all([canal[i] == int(estado[k]) for k, canal in enumerate(canales)]) and # enumerate nos da el índice y el valor
                                all([canal[i-1] == int(prev_estado[k]) for k, canal in enumerate(canales)])])
-            matriz[idx][j] = round(float(occurrences) / count, 2)
+            matriz[idx][j] = round(float(occurrences) / count, 2)#Redondeamos el valor de las probabilidades
 
     # Mostrar matriz
     encabezado = " " * len(estados[0]) + " "
     #For para recorrer los estados y mostrar las probabilidades
     for estado in estados:
+        #For para recorrer los estados y mostrar las probabilidades
         encabezado += "{:^7}".format(estado)
     print(encabezado)
     for i, estado_row in enumerate(estados):
@@ -279,23 +297,23 @@ def CargarExcel(file_path, listaarreglos):
     # Leer el archivo
     df = pd.read_excel(file_path)
 
-    # Función para procesar el nombre de una columna
-    def process_column_name(column_name):
-        if '.' in str(column_name):
-            parts = str(column_name).split('.')
+    # Función para procesar el nombre de una columna 
+    def Eliminar(columnA):
+        if '.' in str(columnA):
+            parts = str(columnA).split('.')
             return parts[0]
-        return column_name
+        return columnA
 
     # Procesar los nombres de las columnas
-    df.columns = [process_column_name(col) for col in df.columns]
+    df.columns = [Eliminar(col) for col in df.columns]
 
     # Convertir el excel en una matriz
-    matrix_representation = df.values.tolist()
+    Matrix = df.values.tolist()
 
     # Asignar cada columna de la matriz como un canal en el diccionario
-    for column in matrix_representation:
-        canal_numero = len(listaarreglos) + 1  # El número del canal es el siguiente número disponible
-        listaarreglos[canal_numero] = column
+    for column in Matrix:
+        canalnumero = len(listaarreglos) + 1  # El número del canal es el siguiente número disponible
+        listaarreglos[canalnumero] = column
 
     return listaarreglos  # Devolver el diccionario actualizado
 

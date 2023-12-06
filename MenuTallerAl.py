@@ -45,7 +45,7 @@ def menu():
                 print(f"Error al cargar el archivo: {e}")
         elif opcion == "6":
              if listaarreglos:
-                generarMatriz(*listaarreglos.values())
+                generarMatrizCanalFuturo(*listaarreglos.values())
              else:
                print("No tienes canales ingresados.")
         elif opcion == "7":
@@ -55,7 +55,7 @@ def menu():
                 print("No tienes canales ingresados.")
         elif opcion == "8":
             if listaarreglos:
-                generarMatriz(*listaarreglos.values())
+                generarMatrizCanalFuturo(*listaarreglos.values())
             else:
                 print("No tienes canales ingresados.")
         elif opcion == "9":
@@ -66,7 +66,7 @@ def menu():
         elif opcion == "10":
             MatrizGlobal()
         elif opcion == "11":
-            print("Gracias por utilizar el programa.")
+            print("Gracias por utilizar el programa diseñado por Daniel Felipe Carreño Chavarro.")
             break
        
 menu()
